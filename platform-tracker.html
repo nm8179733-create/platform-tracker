@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Platform — Team Tracker</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f7f7f5;color:#1a1a1a;padding:24px 16px;min-height:100vh}
+  .wrap{max-width:860px;margin:0 auto}
+  .page-title{font-size:26px;font-weight:600;margin-bottom:4px;color:#1a1a1a}
+  .page-sub{font-size:13px;color:#888;margin-bottom:20px}
+  .legend{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#666}
+  .leg-dot{width:10px;height:10px;border-radius:2px}
+  .ld-me{background:#534AB7}.ld-frnd{background:#1D9E75}
+  .overall-bar{background:#fff;border-radius:12px;border:1px solid #e8e8e5;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+  .ob-label{font-size:12px;font-weight:600;white-space:nowrap}
+  .me-col-color{color:#534AB7}.frnd-col-color{color:#1D9E75}
+  .ob-track{flex:1;height:6px;background:#f0f0ee;border-radius:3px;overflow:hidden;position:relative}
+  .ob-fill-me{position:absolute;left:0;top:0;height:100%;background:#534AB7;border-radius:3px;transition:width .3s}
+  .ob-fill-frnd{position:absolute;left:0;top:0;height:100%;background:#1D9E75;border-radius:3px;transition:width .3s}
+  .ob-pct{font-size:12px;font-weight:600;white-space:nowrap}
+  .divider{width:1px;height:20px;background:#e8e8e5;margin:0 2px}
+  .top-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+  .stat{background:#fff;border-radius:10px;border:1px solid #e8e8e5;padding:10px 12px;text-align:center}
+  .stat-num{font-size:20px;font-weight:600;color:#1a1a1a}
+  .stat-lbl{font-size:11px;color:#888;margin-top:2px}
+  .tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+  .tab{padding:5px 13px;border-radius:8px;border:1px solid #e8e8e5;font-size:12px;cursor:pointer;background:#fff;color:#888;transition:all .15s;font-weight:500}
+  .tab.active{background:#f0f0ee;color:#1a1a1a;border-color:#d0d0cc}
+  .sec{display:none}.sec.active{display:block}
+  .phase-card{background:#fff;border:1px solid #e8e8e5;border-radius:12px;padding:14px 18px;margin-bottom:10px}
+  .phase-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .pnum{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+  .ph1{background:#EEEDFE;color:#3C3489}.ph2{background:#E1F5EE;color:#085041}.ph3{background:#FAEEDA;color:#633806}.ph4{background:#E6F1FB;color:#0C447C}.ph5{background:#EAF3DE;color:#27500A}.ph6{background:#FAECE7;color:#712B13}
+  .phase-title{font-size:14px;font-weight:600;color:#1a1a1a;flex:1}
+  .phase-meta{font-size:11px;color:#888}
+  .phase-owners{display:flex;gap:4px;margin-bottom:8px}
+  .owner-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+  .ob-me{background:#EEEDFE;color:#3C3489}.ob-frnd{background:#E1F5EE;color:#085041}
+  .tasks-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .col-head{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #f0f0ee}
+  .col-me .col-head{color:#534AB7}.col-frnd .col-head{color:#1D9E75}
+  .task{display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:1px solid #f7f7f5;cursor:pointer;user-select:none}
+  .task:last-child{border-bottom:none}
+  .cb{width:15px;height:15px;border-radius:3px;border:1.5px solid #ccc;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;background:#fff;transition:all .15s}
+  .cb.done-me{background:#534AB7;border-color:#534AB7}.cb.done-frnd{background:#1D9E75;border-color:#1D9E75}
+  .cb.done-me::after,.cb.done-frnd::after{content:'✓';font-size:9px;color:white;font-weight:700}
+  .task-text{font-size:12px;color:#1a1a1a;line-height:1.4;flex:1}
+  .task-text.done{color:#bbb;text-decoration:line-through}
+  .tag{font-size:10px;padding:1px 6px;border-radius:6px;flex-shrink:0;font-weight:500}
+  .t-must{background:#FCEBEB;color:#791F1F}.t-good{background:#EEEDFE;color:#3C3489}.t-opt{background:#E1F5EE;color:#085041}.t-learn{background:#FAEEDA;color:#633806}
+  .pbar-row{display:flex;gap:10px;margin-top:10px}
+  .pbar-wrap{flex:1}
+  .pbar-label{font-size:10px;margin-bottom:3px;font-weight:600}
+  .pbar{height:4px;background:#f0f0ee;border-radius:2px;overflow:hidden}
+  .pfill-me{height:100%;border-radius:2px;background:#534AB7;transition:width .3s}
+  .pfill-frnd{height:100%;border-radius:2px;background:#1D9E75;transition:width .3s}
+  .stack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+  .scard{background:#fff;border:1px solid #e8e8e5;border-radius:10px;padding:10px 12px}
+  .slabel{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .who{font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:600}
+  .who-me{background:#EEEDFE;color:#3C3489}.who-frnd{background:#E1F5EE;color:#085041}
+  .badges{display:flex;flex-wrap:wrap;gap:4px}
+  .bdg{font-size:11px;padding:2px 8px;border-radius:6px;background:#f7f7f5;border:1px solid #e8e8e5;color:#1a1a1a}
+  .week-header{display:grid;grid-template-columns:60px 1fr 1fr;gap:8px;padding-bottom:6px;border-bottom:2px solid #e8e8e5;margin-bottom:4px}
+  .week-header span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888}
+  .week-row{display:grid;grid-template-columns:60px 1fr 1fr;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid #f0f0ee}
+  .week-row:last-child{border-bottom:none}
+  .wbadge{font-size:10px;padding:3px 6px;border-radius:10px;font-weight:600;text-align:center}
+  .w1{background:#EEEDFE;color:#3C3489}.w2{background:#E1F5EE;color:#085041}.w3{background:#FAEEDA;color:#633806}.w4{background:#E6F1FB;color:#0C447C}.w5{background:#EAF3DE;color:#27500A}.w6{background:#FAECE7;color:#712B13}.w7{background:#FBEAF0;color:#72243E}.w8{background:#E6F1FB;color:#185FA5}
+  .wcol-head{font-size:10px;font-weight:700;margin-bottom:3px}
+  .me-wcol .wcol-head{color:#534AB7}.frnd-wcol .wcol-head{color:#1D9E75}
+  .wcol-task{font-size:11px;color:#666;line-height:1.5}
+  .skills-note{background:#fff;border:1px solid #e8e8e5;border-left:3px solid #1D9E75;border-radius:0 10px 10px 0;padding:10px 14px;margin-top:12px;font-size:12px;color:#666;line-height:1.6}
+  @media(max-width:600px){
+    .tasks-cols{grid-template-columns:1fr}
+    .top-stats{grid-template-columns:repeat(2,1fr)}
+    .week-header,.week-row{grid-template-columns:50px 1fr}
+    .week-header span:last-child,.frnd-wcol{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="page-title">🚀 Student Platform — Team Tracker</div>
+  <div class="page-sub">Unified dashboard for Me (Builder) and Friend (CS — Learning + Support)</div>
+
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot ld-me"></div>Me (Builder)</div>
+    <div class="leg-item"><div class="leg-dot ld-frnd"></div>Friend (CS — Learning + Support)</div>
+  </div>
+
+  <div class="overall-bar">
+    <span class="ob-label me-col-color">Me</span>
+    <div class="ob-track"><div class="ob-fill-me" id="overall-me" style="width:0%"></div></div>
+    <span class="ob-pct me-col-color" id="pct-me">0%</span>
+    <div class="divider"></div>
+    <span class="ob-pct frnd-col-color" id="pct-frnd">0%</span>
+    <div class="ob-track"><div class="ob-fill-frnd" id="overall-frnd" style="width:0%"></div></div>
+    <span class="ob-label frnd-col-color">Friend</span>
+  </div>
+
+  <div class="top-stats">
+    <div class="stat"><div class="stat-num" id="s-me-done">0</div><div class="stat-lbl">Me done</div></div>
+    <div class="stat"><div class="stat-num" id="s-frnd-done">0</div><div class="stat-lbl">Friend done</div></div>
+    <div class="stat"><div class="stat-num" id="s-total">0</div><div class="stat-lbl">Total tasks</div></div>
+    <div class="stat"><div class="stat-num">8 wks</div><div class="stat-lbl">Timeline</div></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('phases')">📋 Phases</div>
+    <div class="tab" onclick="switchTab('stack')">⚙️ Tech Stack</div>
+    <div class="tab" onclick="switchTab('weekly')">📅 Weekly Plan</div>
+    <div class="tab" onclick="switchTab('skills')">🎯 Skills to Learn</div>
+  </div>
+
+  <div class="sec active" id="sec-phases"></div>
+
+  <div class="sec" id="sec-stack">
+    <div class="stack-grid">
+      <div class="scard"><div class="slabel">Frontend <span class="who who-me">Me</span></div><div class="badges"><span class="bdg">React.js</span><span class="bdg">Tailwind CSS</span><span class="bdg">TypeScript</span><span class="bdg">Vite</span></div></div>
+      <div class="scard"><div class="slabel">Backend <span class="who who-me">Me</span></div><div class="badges"><span class="bdg">Node.js</span><span class="bdg">Express.js</span><span class="bdg">Socket.io</span><span class="bdg">REST API</span></div></div>
+      <div class="scard"><div class="slabel">Database <span class="who who-me">Me</span></div><div class="badges"><span class="bdg">MongoDB</span><span class="bdg">Mongoose</span><span class="bdg">Redis</span></div></div>
+      <div class="scard"><div class="slabel">Auth & Security <span class="who who-me">Me</span></div><div class="badges"><span class="bdg">JWT</span><span class="bdg">bcrypt</span><span class="bdg">OAuth 2.0</span></div></div>
+      <div class="scard"><div class="slabel">Storage & Pay <span class="who who-me">Me</span></div><div class="badges"><span class="bdg">AWS S3</span><span class="bdg">Cloudinary</span><span class="bdg">Razorpay</span></div></div>
+      <div class="scard"><div class="slabel">DevOps <span class="who who-me">Me</span></div><div class="badges"><span class="bdg">Vercel</span><span class="bdg">Railway</span><span class="bdg">Docker</span><span class="bdg">GitHub Actions</span></div></div>
+      <div class="scard"><div class="slabel">Friend learns <span class="who who-frnd">Friend</span></div><div class="badges"><span class="bdg">HTML & CSS</span><span class="bdg">JavaScript</span><span class="bdg">React basics</span><span class="bdg">Git</span></div></div>
+      <div class="scard"><div class="slabel">Friend uses <span class="who who-frnd">Friend</span></div><div class="badges"><span class="bdg">VS Code</span><span class="bdg">Postman</span><span class="bdg">Figma viewer</span><span class="bdg">Notion</span></div></div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-weekly">
+    <div class="week-header">
+      <span>Week</span>
+      <span style="color:#534AB7">Me — tasks</span>
+      <span style="color:#1D9E75">Friend — tasks</span>
+    </div>
+    <div class="week-row"><span class="wbadge w1">Wk 1</span><div class="me-wcol"><div class="wcol-task">Define users, research competitors, write problem statement, set up GitHub + Notion</div></div><div class="frnd-wcol"><div class="wcol-task">Start HTML & CSS course, build personal webpage, help research competitors</div></div></div>
+    <div class="week-row"><span class="wbadge w2">Wk 2</span><div class="me-wcol"><div class="wcol-task">Design all screens in Figma, define design system, get feedback</div></div><div class="frnd-wcol"><div class="wcol-task">Learn JavaScript basics — variables, loops, functions, 10 exercises</div></div></div>
+    <div class="week-row"><span class="wbadge w3">Wk 3</span><div class="me-wcol"><div class="wcol-task">Set up Node.js + Express, connect MongoDB, build auth APIs with JWT</div></div><div class="frnd-wcol"><div class="wcol-task">Learn Git, push code to GitHub, help write platform docs in Notion</div></div></div>
+    <div class="week-row"><span class="wbadge w4">Wk 4</span><div class="me-wcol"><div class="wcol-task">Build Community + Task APIs, file upload, study material API</div></div><div class="frnd-wcol"><div class="wcol-task">Test backend APIs with Postman, log bugs, continue JS — fetch & JSON</div></div></div>
+    <div class="week-row"><span class="wbadge w5">Wk 5</span><div class="me-wcol"><div class="wcol-task">Set up React + Vite + Tailwind, build login/register pages, routing</div></div><div class="frnd-wcol"><div class="wcol-task">Learn React basics — components, useState, useEffect, build a to-do app</div></div></div>
+    <div class="week-row"><span class="wbadge w6">Wk 6</span><div class="me-wcol"><div class="wcol-task">Build dashboard, community, task and materials pages, mobile responsive</div></div><div class="frnd-wcol"><div class="wcol-task">Help build one simple UI component under guidance, keep practicing React</div></div></div>
+    <div class="week-row"><span class="wbadge w7">Wk 7</span><div class="me-wcol"><div class="wcol-task">Fix bugs, add loading states, recruit beta users, fix top issues</div></div><div class="frnd-wcol"><div class="wcol-task">Be a beta tester, log all issues in Notion, test on mobile</div></div></div>
+    <div class="week-row"><span class="wbadge w8">Wk 8</span><div class="me-wcol"><div class="wcol-task">Deploy to Vercel + Railway, share with mentor, onboard first users</div></div><div class="frnd-wcol"><div class="wcol-task">Help share in college groups, onboard friends, keep learning</div></div></div>
+  </div>
+
+  <div class="sec" id="sec-skills">
+    <div class="stack-grid">
+      <div class="scard"><div class="slabel">Month 1 — Basics <span class="who who-frnd">Friend</span></div><div class="badges"><span class="bdg">HTML & CSS</span><span class="bdg">JavaScript ES6+</span><span class="bdg">Git & GitHub</span></div></div>
+      <div class="scard"><div class="slabel">Month 2 — JS Deep <span class="who who-frnd">Friend</span></div><div class="badges"><span class="bdg">DOM manipulation</span><span class="bdg">Fetch API</span><span class="bdg">JSON</span><span class="bdg">async/await</span></div></div>
+      <div class="scard"><div class="slabel">Month 3 — React <span class="who who-frnd">Friend</span></div><div class="badges"><span class="bdg">Components</span><span class="bdg">useState</span><span class="bdg">useEffect</span><span class="bdg">React Router</span></div></div>
+      <div class="scard"><div class="slabel">Free Resources <span class="who who-frnd">Friend</span></div><div class="badges"><span class="bdg">freeCodeCamp</span><span class="bdg">The Odin Project</span><span class="bdg">MDN Docs</span><span class="bdg">YouTube</span></div></div>
+      <div class="scard"><div class="slabel">Me — deepen skills <span class="who who-me">Me</span></div><div class="badges"><span class="bdg">System design</span><span class="bdg">API security</span><span class="bdg">Performance</span><span class="bdg">CI/CD</span></div></div>
+      <div class="scard"><div class="slabel">Both together</div><div class="badges"><span class="bdg">Code reviews</span><span class="bdg">Pair debugging</span><span class="bdg">Project planning</span><span class="bdg">User testing</span></div></div>
+    </div>
+    <div class="skills-note">💡 Friend — start with freeCodeCamp's Responsive Web Design + JavaScript Algorithms courses. They are free, structured, and take about 4–6 weeks. Do 1 hour daily minimum.</div>
+  </div>
+</div>
+
+<script>
+const phases=[
+  {title:"Planning & Research",meta:"Week 1",cls:"ph1",
+    me:[{t:"Define target users — students, teachers, mentors",tag:"must"},{t:"Research 3–5 competitor platforms",tag:"must"},{t:"Write 1-page problem statement",tag:"must"},{t:"List MVP vs future features",tag:"must"},{t:"Interview 5 real students",tag:"must"},{t:"Set up GitHub + Notion workspace",tag:"must"}],
+    frnd:[{t:"Start freeCodeCamp HTML & CSS course",tag:"learn"},{t:"Build a simple personal webpage",tag:"learn"},{t:"Help research competitor platforms",tag:"must"},{t:"Read and understand the feature list",tag:"must"}]},
+  {title:"Design & UI/UX",meta:"Week 2",cls:"ph2",
+    me:[{t:"Sketch wireframes on FigJam",tag:"must"},{t:"Design all key screens in Figma",tag:"must"},{t:"Define color palette + design system",tag:"must"},{t:"Create clickable prototype",tag:"good"},{t:"Get feedback from 2–3 people",tag:"good"}],
+    frnd:[{t:"Learn JavaScript — variables, functions, loops",tag:"learn"},{t:"Do 10 JS exercises on freeCodeCamp",tag:"learn"},{t:"Learn what an API is and how it works",tag:"learn"},{t:"Help document platform in Notion",tag:"must"}]},
+  {title:"Backend Development",meta:"Week 3–4",cls:"ph3",
+    me:[{t:"Set up Node.js + Express",tag:"must"},{t:"Connect MongoDB Atlas",tag:"must"},{t:"Build auth APIs with JWT",tag:"must"},{t:"Build Community + Task APIs",tag:"must"},{t:"Set up file upload (Cloudinary)",tag:"must"},{t:"Build study material API",tag:"must"},{t:"Add Razorpay payment API",tag:"good"},{t:"Set up Socket.io notifications",tag:"opt"}],
+    frnd:[{t:"Learn Git — commit, push, pull",tag:"learn"},{t:"Create GitHub account, push your code",tag:"learn"},{t:"Test backend APIs with Postman",tag:"must"},{t:"Report any issues you find",tag:"must"}]},
+  {title:"Frontend Development",meta:"Week 5–6",cls:"ph4",
+    me:[{t:"Set up React + Vite + Tailwind CSS",tag:"must"},{t:"Configure React Router",tag:"must"},{t:"Build Login, Register, Onboarding pages",tag:"must"},{t:"Build Dashboard page",tag:"must"},{t:"Build Community pages",tag:"must"},{t:"Build Task pages",tag:"must"},{t:"Build Study Materials page",tag:"must"},{t:"Build Teacher dashboard",tag:"good"},{t:"Make all pages mobile responsive",tag:"must"}],
+    frnd:[{t:"Learn React — components, props, state",tag:"learn"},{t:"Build a to-do app in React",tag:"learn"},{t:"Learn useState and useEffect",tag:"learn"},{t:"Help build one simple UI component",tag:"good"}]},
+  {title:"Testing & Feedback",meta:"Week 7",cls:"ph5",
+    me:[{t:"Test all APIs with Postman",tag:"must"},{t:"Fix broken flows",tag:"must"},{t:"Recruit 5–10 beta users",tag:"must"},{t:"Fix top bugs from beta feedback",tag:"must"},{t:"Add loading + error states in UI",tag:"good"}],
+    frnd:[{t:"Be one of the first beta testers",tag:"must"},{t:"Log all bugs clearly in Notion",tag:"must"},{t:"Test platform on mobile browser",tag:"must"},{t:"Write list of confusing UX moments",tag:"good"}]},
+  {title:"Launch & Growth",meta:"Week 8+",cls:"ph6",
+    me:[{t:"Deploy backend to Railway",tag:"must"},{t:"Deploy frontend to Vercel",tag:"must"},{t:"Share with mentor and college community",tag:"must"},{t:"Collect feedback, plan Version 2",tag:"good"},{t:"Write a case study about the build",tag:"opt"}],
+    frnd:[{t:"Help onboard first users",tag:"must"},{t:"Share platform in college groups",tag:"must"},{t:"Keep learning — next: Node.js basics",tag:"learn"},{t:"Contribute to Version 2 planning",tag:"good"}]},
+];
+const tagLabel={must:"Must",good:"Nice",opt:"Later",learn:"Learn"};
+const tagClass={must:"t-must",good:"t-good",opt:"t-opt",learn:"t-learn"};
+function sv(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function lv(k){try{return localStorage.getItem(k)}catch(e){return null}}
+
+function buildPhases(){
+  const container=document.getElementById('sec-phases');
+  container.innerHTML='';
+  let meTotal=0,frndTotal=0;
+  phases.forEach((ph,pi)=>{
+    meTotal+=ph.me.length;frndTotal+=ph.frnd.length;
+    const card=document.createElement('div');
+    card.className='phase-card';
+    const meTasks=ph.me.map((t,ti)=>{
+      const k='me_p'+pi+'_t'+ti;const done=lv(k)==='1';
+      return `<div class="task" onclick="toggle('${k}','me',${pi})"><div class="cb${done?' done-me':''}" id="cb_${k}"></div><div class="task-text${done?' done':''}" id="tt_${k}">${t.t}</div><span class="tag ${tagClass[t.tag]}">${tagLabel[t.tag]}</span></div>`;
+    }).join('');
+    const frndTasks=ph.frnd.map((t,ti)=>{
+      const k='frnd_p'+pi+'_t'+ti;const done=lv(k)==='1';
+      return `<div class="task" onclick="toggle('${k}','frnd',${pi})"><div class="cb${done?' done-frnd':''}" id="cb_${k}"></div><div class="task-text${done?' done':''}" id="tt_${k}">${t.t}</div><span class="tag ${tagClass[t.tag]}">${tagLabel[t.tag]}</span></div>`;
+    }).join('');
+    card.innerHTML=`
+      <div class="phase-head"><div class="pnum ${ph.cls}">${pi+1}</div><div class="phase-title">${ph.title}</div><div class="phase-meta">${ph.meta}</div></div>
+      <div class="phase-owners"><span class="owner-badge ob-me">Me</span><span class="owner-badge ob-frnd">Friend</span></div>
+      <div class="tasks-cols">
+        <div class="col-me"><div class="col-head">Me — builder</div>${meTasks}</div>
+        <div class="col-frnd"><div class="col-head">Friend — learning + support</div>${frndTasks}</div>
+      </div>
+      <div class="pbar-row">
+        <div class="pbar-wrap"><div class="pbar-label" style="color:#534AB7;font-size:10px">Me</div><div class="pbar"><div class="pfill-me" id="pfme_${pi}" style="width:0%"></div></div></div>
+        <div class="pbar-wrap"><div class="pbar-label" style="color:#1D9E75;font-size:10px">Friend</div><div class="pbar"><div class="pfill-frnd" id="pffrnd_${pi}" style="width:0%"></div></div></div>
+      </div>`;
+    container.appendChild(card);
+  });
+  document.getElementById('s-total').textContent=meTotal+frndTotal;
+  updateAll();
+}
+
+function toggle(key,person,pi){
+  const cb=document.getElementById('cb_'+key);
+  const tt=document.getElementById('tt_'+key);
+  if(!cb)return;
+  const isDone=cb.classList.contains('done-'+person);
+  cb.classList.toggle('done-'+person,!isDone);
+  tt.classList.toggle('done',!isDone);
+  sv(key,isDone?'0':'1');
+  updateAll();
+}
+
+function updateAll(){
+  let meDone=0,frndDone=0,meTotal=0,frndTotal=0;
+  phases.forEach((ph,pi)=>{
+    let mpd=0,fpd=0;
+    ph.me.forEach((_,ti)=>{if(lv('me_p'+pi+'_t'+ti)==='1'){meDone++;mpd++;}meTotal++;});
+    ph.frnd.forEach((_,ti)=>{if(lv('frnd_p'+pi+'_t'+ti)==='1'){frndDone++;fpd++;}frndTotal++;});
+    const pfm=document.getElementById('pfme_'+pi);
+    const pff=document.getElementById('pffrnd_'+pi);
+    if(pfm)pfm.style.width=ph.me.length?Math.round(mpd/ph.me.length*100)+'%':'0%';
+    if(pff)pff.style.width=ph.frnd.length?Math.round(fpd/ph.frnd.length*100)+'%':'0%';
+  });
+  const mePct=meTotal?Math.round(meDone/meTotal*100):0;
+  const frndPct=frndTotal?Math.round(frndDone/frndTotal*100):0;
+  document.getElementById('s-me-done').textContent=meDone;
+  document.getElementById('s-frnd-done').textContent=frndDone;
+  document.getElementById('overall-me').style.width=mePct+'%';
+  document.getElementById('overall-frnd').style.width=frndPct+'%';
+  document.getElementById('pct-me').textContent=mePct+'%';
+  document.getElementById('pct-frnd').textContent=frndPct+'%';
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',['phases','stack','weekly','skills'][i]===name);
+  });
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+}
+
+buildPhases();
+</script>
+</body>
+</html>
